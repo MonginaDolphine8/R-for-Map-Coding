@@ -1,0 +1,172 @@
+---
+title: <p style = "color:#871946"> <b> **001:Map Coding with R** </b> </p>
+output:
+  html_notebook:
+    code_folding: hide
+    highlight: zenburn
+    theme: cerulean
+  html_document:
+    df_print: paged
+---
+
+
+
+<p style = "color:#871946">***By Mongina Dolphine***</p>
+<p style = "color:#871946">***October 29 2019***</p>
+\
+R was initially developed for statistical computations. With the advancement of R-Spatial libraries such as [rgdal](https://cran.r-project.org/web/packages/rgdal/index.html),which is R's interface to Geospatial Abstraction Library enabling R to handle a broader range of spatial data formats,it has now become possible for spatial data analysis and visualization, by use of functionalities within rgdal such as [readOGR()](https://www.rdocumentation.org/packages/rgdal/versions/1.4-6/topics/readOGR).
+
+<p style = "color:#871946"><font size="4"> **Some pros and cons of R include:** 
+</font></p>
+
+
+Pros            | Cons
+----            | -----
+1.Free          | No official support
+2.Reproducible  | Steep learning curve (No user interface)
+3.Online help   | Slow with large datasets
+
+This tutorial will attempt to scratch the surface of the mapping capabilities of R-Spatial by use of three main mapping libraries.The choice of a particular library is dependent on **intended use of the map**, **accuracy required** and **variable to be mapped**.\
+
+<p style = "color:#871946"><font size="5"> **1. Mapview** 
+</font></p>
+Has functionalities that quickly and conveniently create interactive visualisations of spatial data with or without background maps. Attributes of displayed features are fully queryable via pop-up windows.[Source:https://cran.r-project.org/web/packages/mapview/index.html].
+
+The full documentation is available from [mapview.pdf](https://cran.r-project.org/web/packages/mapview/mapview.pdf).\
+\
+<p style = "color:#871946"><font size="4"> **1.1.RColorBrewer** 
+</font></p>
+It creates nice looking color palettes especially for thematic maps.The South Africa consumer price index data,available from [South Africa Data Portal](http://southafrica.opendataforafrica.org/user/downloadattachment?id=219440), represents sequential, diverging and qualitative variables, a perfect use case for this example.
+
+
+<p style = "color:#871946"><font size="4"> **1.2.Sequential Palettes** 
+</font></p>
+Are suited to order data that progress from low to high. Lightness steps dominate the look of these schemes with light colors for low data values to dark colors for high values. This can easily be reversed.
+```{r}
+#install.packages("mapview") #mapview installation
+#?mapview() #displays the syntax
+library(rgdal)
+library(mapview)
+library(RColorBrewer)
+South_Africa_CPI <- readOGR("za_cpi2.shp") #load the shapefile
+#South_Africa_CPI$CPI_Alcoho >>> Sequential Color Palette
+palseq <- colorRampPalette(brewer.pal(8, "Purples")) #Sequential color palette
+mapview(South_Africa_CPI,alpha.regions = 1,layer.name="Alcohol Consumer Price Index", 
+        zcol = "CPI_Alcoho",col.regions = palseq,legend = TRUE,layers.control.pos = "topright") 
+ 
+```
+
+```{r echo=TRUE, fig.height=10, fig.width=10}
+mapview(South_Africa_CPI,alpha.regions = 1,layer.name="Alcohol Consumer Price Index", 
+        zcol = "CPI_Alcoho",col.regions = palseq,legend = TRUE,layers.control.pos = "topright") #Visualizes the provinces
+```
+<p style = "color:#871946"><font size="2"> *Map 1:Sequential color palette showing the Alcohol Consumer Price Index in South Africa* 
+</font></p>
+
+<p style = "color:#871946"><font size="4"> **1.3.Diverging Palettes** 
+</font></p>
+They put equal empasis on mid-range critical values and extremes at both ends of the data range. The critical class or break in the middle of the legend is emphasised with light colors and low and high extrems are emphasised with dark colors that have contrasting hues.
+
+```{r}
+##South_Africa_CPI$divsa_Opin >>> Diverging Palette
+paldvg <- colorRampPalette(c("White","Red", "Blue"))#diverging palettes
+mapview(South_Africa_CPI,alpha.regions = 1,layer.name="Government should control social media", zcol = "divsa_Opin",col.regions=paldvg) #Visualizes the Opinion polls
+```
+
+```{r echo=TRUE, fig.height=10, fig.width=10}
+mapview(South_Africa_CPI,alpha.regions = 1,layer.name="Government should control social media", zcol = "divsa_Opin",col.regions=paldvg)
+```
+
+<p style = "color:#871946"><font size="2"> *Map 2:Diverging color palette showing the opinion polls on whether the government should control social media* 
+</font></p>
+<p style = "color:#871946"><font size="4"> **1.4.Qualitative Palettes** 
+</font></p>
+These do not imply magnitude differences between legend classes and hues are used to create the primary visual differences between classes. Qualitative schemes are best suited to representing nominal or categorical data.
+```{r}
+##South_Africa_CPI$VARNAME_1 >>> Qualitative Color Palette
+palqual <- colorRampPalette(brewer.pal(3, "Dark2")) #qualitative palettes
+mapview(South_Africa_CPI,alpha.regions = 1,layer.name="South African Provinces", 
+        zcol = "NAME_1",col.regions = palqual ) #Visualizes the provinces
+```
+
+```{r echo=TRUE, fig.height=10, fig.width=10}
+mapview(South_Africa_CPI,alpha.regions = 1,layer.name="South African Provinces", 
+        zcol = "NAME_1",col.regions = palqual ) #Visualizes the provinces
+```
+
+<p style = "color:#871946"><font size="2"> *Map 3:Qualitative color palette showing the provinces in South Africa* 
+</font></p>
+
+<p style = "color:#871946"><font size="4"> **1.5.A bit of GIS Analysis** 
+</font></p>
+Now that we have seen the maping basics, we will perform some basic analysis.Suppose we want to visualise the province with the highest Consumer Price Index on alcohol, we will querry the **CPI_Alcoho** column. From the legend, we already know that the highest value is **115.8**,below is the code that will give us the output.
+
+```{r}
+mapview(South_Africa_CPI[South_Africa_CPI$CPI_Alcoho == 115.8,],
+        col.regions="Red", layer.name = "Highest Consumer Price Index on Alcohol") + 
+   #filtration
+```
+
+```{r echo=TRUE, fig.height=10, fig.width=10}
+  
+mapview(South_Africa_CPI,alpha.regions = 0,layer.name="South Africa",legend = FALSE) +mapview(South_Africa_CPI[South_Africa_CPI$CPI_Alcoho == 115.8,],
+        col.regions="Red", layer.name = "Highest Consumer Price Index on Alcohol") #filtration
+```
+
+<p style = "color:#871946"><font size="2"> *Map 4:A simple filtration* 
+</font></p>
+
+<p style = "color:#871946"><font size="5"> **2.Tmap** 
+</font></p>
+
+With tmap package, thematic maps can be generated with great flexibility. [Source:https://cran.r-project.org/web/packages/tmap/vignettes/tmap-getstarted.html.]\
+The major advantage of tmap over other mapping libraries lies in the [tmap_animation functionality](
+https://www.rdocumentation.org/packages/tmap/versions/2.3/topics/tmap_animation
+), which has the ability to create a gif or mpeg animation from a tmap plot.This is particularly useful when visualizing **spatio-temporal variables** or when there is need to visualize a series of maps side by side without having to switch in between layers.
+
+```{r}
+ma1 = tm_shape(South_Africa_CPI) + tm_fill(col = "CPI_Alcoho", palette = "Reds"
+                                           ,title = "Alcohol C.P.I",
+                                           legend.is.portrait = FALSE)
+
+ma2 = tm_shape(South_Africa_CPI) + tm_fill(col = "CPI_Health", palette = "Greens"
+                                           ,title = "Health C.P.I",
+                                           legend.is.portrait = FALSE)
+
+ma3 = tm_shape(South_Africa_CPI) + tm_fill(col = "CPI_Consum", palette = "Blues"
+                                           ,title = "Consumption C.P.I",
+                                           legend.is.portrait = FALSE)
+
+
+```
+
+```{r echo=TRUE, fig.height=10, fig.width=10, message=FALSE}
+tmap_arrange( ma1,ma2, ma3)
+```
+
+<p style = "color:#871946"><font size="2"> *Map 5:A series of Consumer Price Indices Maps* </font></p>
+
+<p style = "color:#871946"><font size="4"> **2.1.Animated maps with tmap_animation()** </font></p>
+The tmap_animation functionality from [library magick](https://cran.r-project.org/web/packages/magick/vignettes/intro.html) produces beautiful animated maps.Below is a chunk of code that demonstrates this.
+
+```{r}
+#Add your shapefiles in the below code to avoid errors
+sa_anim <- 
+  tm_shape(South_Africa_CPI) +
+   tm_polygons(alpha = 0) +
+  tm_shape(South_Africa_CPI) +
+   tm_polygons("CPI_Consum", palette = "-Reds",title = "Consumer Price Index") +
+   tm_facets(along = "NAME_1", free.coords = FALSE) 
+tmap_animation(urb_anim, filename = "SA.gif",width = 1200,delay = 250)
+```
+
+
+
+
+
+
+
+
+
+
+
